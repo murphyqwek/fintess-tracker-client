@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
+import { UserAuthModel } from '../../models/user.auth.model';
 
 @Component({
   selector: 'app-auth',
@@ -10,6 +12,9 @@ import { RouterLink } from '@angular/router';
 })
 export class AuthComponent {
   private isFailedToAuthbool = false;
+
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
   authForm = new FormGroup({
     login: new FormControl('', [Validators.required, Validators.minLength(6), Validators.maxLength(20)]),
@@ -29,7 +34,22 @@ export class AuthComponent {
     const pass = this.authForm.get('password')?.value;
 
     console.log('Успешная авторизация:', this.authForm.value);
-    this.isFailedToAuthbool = !this.isFailedToAuthbool;
+
+    const userAuth: UserAuthModel = {
+        login: this.authForm.get('login')?.value || '',
+        password: pass || ''
+    };
+  
+    this.authService.login(userAuth).subscribe({
+      next: () => {
+        console.log('Успешная авторизация:', userAuth);
+        this.router.navigate(['/home']);
+      },
+      error: (error) => {
+        console.error('Ошибка авторизации:', error);
+        this.isFailedToAuthbool = true;
+      }
+    });
   }
 
   isFailedToAuth() {
