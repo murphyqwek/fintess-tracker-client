@@ -29,7 +29,7 @@ jobs:
             host: ${{ secrets.SERVER_HOST }}
             username: ${{ secrets.SERVER_USER }}
             password: ${{ secrets.SERVER_PASSWORD }}
-            source: "dist/${{ ANGULAR_PROJECT_NAME }}/browser/*"
+            source: "dist/${{ secrets.ANGULAR_PROJECT_NAME }}/browser/*"
             target: "/var/www/fitness-tracker-frontend"
             strip_components: 3
             rm: true
