@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "fintess-tracker-client": {
+    "fitness-tracker-client": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -59,12 +59,15 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "proxyConfig": "proxy.config.json"
+          },
           "configurations": {
             "production": {
-              "buildTarget": "fintess-tracker-client:build:production"
+              "buildTarget": "fitness-tracker-client:build:production"
             },
             "development": {
-              "buildTarget": "fintess-tracker-client:build:development"
+              "buildTarget": "fitness-tracker-client:build:development"
             }
           },
           "defaultConfiguration": "development"
