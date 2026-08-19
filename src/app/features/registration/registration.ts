@@ -42,8 +42,6 @@ export class RegistrationComponent {
     const userReg: UserRegModel = {
       login: this.registrationForm.get('login')?.value || '',
       password: pass || '',
-      name: "Jhon Doe",
-      birthDate: "2000-01-01"
     };
 
     this.authService.register(userReg).subscribe({
