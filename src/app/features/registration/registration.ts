@@ -17,7 +17,7 @@ export class RegistrationComponent {
 
   registrationForm = new FormGroup({
     login: new FormControl('', [Validators.required, Validators.minLength(6), Validators.maxLength(20)]),
-    password: new FormControl('', [Validators.required, Validators.minLength(6), Validators.maxLength(20)]),
+    password: new FormControl('', [Validators.required, Validators.minLength(8), Validators.maxLength(20)]),
     confirmPassword: new FormControl('', [Validators.required])
   });
 
