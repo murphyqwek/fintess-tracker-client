@@ -3,6 +3,7 @@ import { HomeComponent } from './features/home/home';
 import { AuthComponent } from './features/auth/auth';
 import { RegistrationComponent } from './features/registration/registration';
 import { authGuard } from './core/guards/auth.guard';
+import { regLoginGuard } from './core/guards/reg.login.guard';
 
 export const routes: Routes = [
     {
@@ -13,12 +14,14 @@ export const routes: Routes = [
 
     {
         path: 'register',
-        component: RegistrationComponent
+        component: RegistrationComponent,
+        canActivate: [regLoginGuard]
     },
 
     {
         path: 'login',
-        component: AuthComponent
+        component: AuthComponent,
+        canActivate: [regLoginGuard]
     },
 
     {
