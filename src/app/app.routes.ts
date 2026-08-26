@@ -1,10 +1,10 @@
 import { Routes } from '@angular/router';
-import { HomeComponent } from './features/home/home';
 import { AuthComponent } from './features/auth/auth';
 import { RegistrationComponent } from './features/registration/registration';
 import { authGuard } from './core/guards/auth.guard';
 import { regLoginGuard } from './core/guards/reg.login.guard';
 import { DashboardComponent } from './features/dashboard/dashboard';
+import { ExerciseSearch } from './features/exercise-search/exercise-search';
 
 export const routes: Routes = [
     {
@@ -23,6 +23,12 @@ export const routes: Routes = [
         path: 'login',
         component: AuthComponent,
         canActivate: [regLoginGuard]
+    },
+
+    {
+        path: 'exercise-search',
+        component: ExerciseSearch,
+        canActivate: [authGuard]
     },
 
     {
