@@ -4,11 +4,12 @@ import { AuthComponent } from './features/auth/auth';
 import { RegistrationComponent } from './features/registration/registration';
 import { authGuard } from './core/guards/auth.guard';
 import { regLoginGuard } from './core/guards/reg.login.guard';
+import { DashboardComponent } from './features/dashboard/dashboard';
 
 export const routes: Routes = [
     {
         path: '',
-        component: HomeComponent,
+        component: DashboardComponent,
         canActivate: [authGuard]
     },
 
