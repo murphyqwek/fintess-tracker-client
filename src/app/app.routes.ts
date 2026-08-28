@@ -5,6 +5,7 @@ import { authGuard } from './core/guards/auth.guard';
 import { regLoginGuard } from './core/guards/reg.login.guard';
 import { DashboardComponent } from './features/dashboard/dashboard';
 import { ExerciseSearch } from './features/exercise-search/exercise-search';
+import { ExerciseDetail } from './features/exercise-detail/exercise-detail';
 
 export const routes: Routes = [
     {
@@ -28,6 +29,12 @@ export const routes: Routes = [
     {
         path: 'exercise-search',
         component: ExerciseSearch,
+        canActivate: [authGuard]
+    },
+
+    { 
+        path: 'exercise/:id', 
+        component: ExerciseDetail, 
         canActivate: [authGuard]
     },
 

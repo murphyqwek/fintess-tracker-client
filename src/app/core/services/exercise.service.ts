@@ -32,4 +32,8 @@ export class ExerciseService {
 
     return this.http.get<PageResponse<ExerciseReduced>>(this.apiUrl, { params });
   }
+
+  getExerciseById(id: number | string): Observable<Exercise> {
+    return this.http.get<Exercise>(`${this.apiUrl}/${id}`);
+  }
 }
