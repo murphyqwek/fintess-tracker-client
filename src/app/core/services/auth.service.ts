@@ -19,19 +19,19 @@ export class AuthService {
   isAuthenticated = computed(() => !!this.currentUser());
 
   register(credentials: UserRegModel): Observable<User> {
-    return this.http.post<User>(`api/auth/register`, credentials, { withCredentials: true }).pipe(
+    return this.http.post<User>(`api/v1/auth/register`, credentials, { withCredentials: true }).pipe(
       tap(user => this.currentUser.set(user))
     );
   }
 
   login(credentials: UserAuthModel): Observable<User> {
-    return this.http.post<User>(`api/auth/login`, credentials, { withCredentials: true }).pipe(
+    return this.http.post<User>(`api/v1/auth/login`, credentials, { withCredentials: true }).pipe(
       tap(user => this.currentUser.set(user))
     );
   }
 
   logout(): Observable<any> {
-    return this.http.post(`api/auth/logout`, {}, { withCredentials: true }).pipe(
+    return this.http.post(`api/v1/auth/logout`, {}, { withCredentials: true }).pipe(
       tap(() => {
         this.currentUser.set(null);
         this.router.navigate(['/login']);
@@ -40,7 +40,7 @@ export class AuthService {
   }
 
   checkAuth(): Observable<boolean> {
-    return this.http.get<User>(`api/test-auth`, { withCredentials: true }).pipe(
+    return this.http.get<User>(`api/v1/test-auth`, { withCredentials: true }).pipe(
       tap(user => this.currentUser.set(user)),
       map(() => true),
       catchError(() => {
@@ -51,6 +51,6 @@ export class AuthService {
   }
 
   refreshToken(): Observable<any> {
-    return this.http.post(`api/auth/refresh`, {}, { withCredentials: true });
+    return this.http.post(`api/v1/auth/refresh`, {}, { withCredentials: true });
   }
 }
