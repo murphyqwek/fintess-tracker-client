@@ -2,7 +2,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Exercise, PageResponse } from '../../models/exercise.model';
+import { Exercise, ExerciseReduced, PageResponse } from '../../models/exercise.model';
 
 @Injectable({ providedIn: 'root' })
 export class ExerciseService {
@@ -14,7 +14,7 @@ export class ExerciseService {
     size: number, 
     name?: string, 
     muscleIds?: number[]
-  ): Observable<PageResponse<Exercise>> {
+  ): Observable<PageResponse<ExerciseReduced>> {
     let params = new HttpParams()
       .set('page', page)
       .set('size', size);
@@ -30,6 +30,6 @@ export class ExerciseService {
       });
     }
 
-    return this.http.get<PageResponse<Exercise>>(this.apiUrl, { params });
+    return this.http.get<PageResponse<ExerciseReduced>>(this.apiUrl, { params });
   }
 }

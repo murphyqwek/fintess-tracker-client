@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { ExerciseService } from '../../core/services/exercise.service';
-import { Exercise, MUSCLE_GROUPS } from '../../models/exercise.model';
+import { Exercise, ExerciseReduced, MUSCLE_GROUPS } from '../../models/exercise.model';
 
 @Component({
   selector: 'app-exercise-search',
@@ -21,7 +21,7 @@ export class ExerciseSearch implements OnInit {
   searchQuery = signal<string>('');
   selectedMuscleIds = signal<number[]>([]);
   
-  exercises = signal<Exercise[]>([]);
+  exercises = signal<ExerciseReduced[]>([]);
   currentPage = signal<number>(1);
   totalElements = signal<number>(0);
   isLoading = signal<boolean>(false);

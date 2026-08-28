@@ -12,6 +12,12 @@ export interface Exercise {
   muscles: Muscle[];
 }
 
+export interface ExerciseReduced {
+  id: number;
+  name: string;
+  muscles: Muscle[];
+}
+
 export interface PageResponse<T> {
   page: number;
   size: number;
