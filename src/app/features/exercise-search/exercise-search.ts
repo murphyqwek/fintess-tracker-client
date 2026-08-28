@@ -15,48 +15,50 @@ import { Exercise, MUSCLE_GROUPS } from '../../models/exercise.model';
 export class ExerciseSearch implements OnInit {
   private exerciseService = inject(ExerciseService);
 
-  // Константы
   readonly muscleGroups = MUSCLE_GROUPS;
   readonly pageSize = 10;
 
-  // Состояние (Сигналы)
   searchQuery = signal<string>('');
-  selectedMuscleIds = signal<number[]>([]); // Теперь можно выбрать несколько
+  selectedMuscleIds = signal<number[]>([]);
   
   exercises = signal<Exercise[]>([]);
   currentPage = signal<number>(1);
   totalElements = signal<number>(0);
   isLoading = signal<boolean>(false);
 
-  // Вычисляемые значения для пагинации
   totalPages = computed(() => Math.ceil(this.totalElements() / this.pageSize));
   hasNextPage = computed(() => this.currentPage() < this.totalPages());
   hasPrevPage = computed(() => this.currentPage() > 0);
 
-  // RxJS Subject для задержки ввода поиска
+  isMusclesDropdownOpen = signal<boolean>(false);
+
   private searchSubject = new Subject<string>();
 
   ngOnInit() {
-    // Подписка на ввод текста с задержкой 400мс
     this.searchSubject.pipe(
       debounceTime(400),
       distinctUntilChanged()
     ).subscribe((query) => {
       this.searchQuery.set(query);
-      this.currentPage.set(1); // Сбрасываем на первую страницу при новом поиске
+      this.currentPage.set(1);
       this.fetchExercises();
     });
 
-    // Загружаем данные при старте
     this.fetchExercises();
   }
 
-  // Обработчик инпута в HTML
+  toggleMusclesDropdown(): void {
+    this.isMusclesDropdownOpen.update(v => !v);
+  }
+
+  closeMusclesDropdown(): void {
+    this.isMusclesDropdownOpen.set(false);
+  }
+
   onSearchChange(query: string) {
     this.searchSubject.next(query);
   }
 
-  // Клик по чипсу мышцы
   toggleMuscle(muscleId: number) {
     const current = this.selectedMuscleIds();
     if (current.includes(muscleId)) {
@@ -65,11 +67,10 @@ export class ExerciseSearch implements OnInit {
       this.selectedMuscleIds.set([...current, muscleId]);
     }
     
-    this.currentPage.set(1); // Сбрасываем пагинацию
+    this.currentPage.set(1);
     this.fetchExercises();
   }
 
-  // Пагинация
   nextPage() {
     if (this.hasNextPage()) {
       this.currentPage.update(p => p + 1);
@@ -84,7 +85,6 @@ export class ExerciseSearch implements OnInit {
     }
   }
 
-  // Основной метод загрузки
   private fetchExercises() {
     this.isLoading.set(true);
     

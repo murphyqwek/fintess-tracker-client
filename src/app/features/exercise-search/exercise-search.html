@@ -1,9 +1,7 @@
 <div class="min-h-screen bg-[#F9F9FB] flex flex-col lg:flex-row text-gray-900 font-sans">
   
-  <!-- ================= САЙДБАР (Для Desktop >= lg) ================= -->
   <aside class="hidden lg:flex flex-col w-72 xl:w-80 bg-white lg:min-h-screen border-r border-gray-200 p-5 lg:p-7 shrink-0 gap-6">
     
-    <!-- Кнопка назад + Заголовок -->
     <div class="flex items-center gap-3.5">
       <button 
         routerLink="/" 
@@ -19,7 +17,6 @@
 
     <hr class="border-gray-100" />
 
-    <!-- Поиск для Desktop -->
     <div class="flex flex-col gap-2.5">
       <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Поиск</span>
       <div class="relative">
@@ -40,7 +37,6 @@
 
     <hr class="border-gray-100" />
 
-    <!-- Инфо-блок мышечных групп -->
     <div class="flex flex-col gap-2">
       <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Мышечные группы</span>
       <p class="text-xs text-gray-600 leading-relaxed">
@@ -49,10 +45,8 @@
     </div>
   </aside>
 
-  <!-- ================= ОСНОВНОЙ КОНТЕНТ ================= -->
   <main class="flex-1 p-4 sm:p-7 lg:p-10 flex flex-col gap-6 w-full max-w-6xl mx-auto lg:mx-0">
     
-    <!-- Хедер для Mobile и Tablet (< lg) -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 lg:hidden">
       <div class="flex items-center gap-3.5">
         <button 
@@ -67,7 +61,6 @@
         <h1 class="text-xl sm:text-2xl font-bold tracking-tight">Поиск упражнений</h1>
       </div>
 
-      <!-- Поиск в хедере для Tablet (md) -->
       <div class="relative hidden md:block w-72 lg:hidden">
         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
           <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,7 +77,6 @@
       </div>
     </div>
 
-    <!-- Поиск для Mobile (< md) -->
     <div class="relative block md:hidden">
       <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
         <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,10 +92,66 @@
       />
     </div>
 
-    <!-- Фильтр по мышцам (Чипсы) -->
-    <div class="flex flex-col gap-3">
-      <h2 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Мышечные группы</h2>
-      <div class="flex flex-wrap gap-2">
+    <div class="flex flex-col gap-2.5">
+      <h2 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider hidden md:block">Мышечные группы</h2>
+
+      <div class="relative block md:hidden">
+        <button 
+          type="button"
+          (click)="toggleMusclesDropdown()"
+          class="w-full flex items-center justify-between px-4 py-3 bg-white border border-gray-300 rounded-xl text-sm font-semibold text-gray-800 shadow-2xs active:bg-gray-50 transition cursor-pointer"
+        >
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+            </svg>
+            <span>Группы мышц</span>
+            @if (selectedMuscleIds().length > 0) {
+              <span class="px-2 py-0.5 text-xs font-bold bg-[#E8F2FE] text-sky-700 rounded-full border border-sky-200">
+                {{ selectedMuscleIds().length }}
+              </span>
+            }
+          </div>
+          
+          <svg 
+            class="w-4 h-4 text-gray-400 transition-transform duration-200"
+            [class.rotate-180]="isMusclesDropdownOpen()"
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+
+        @if (isMusclesDropdownOpen()) {
+          <div 
+            class="fixed inset-0 z-40 bg-black/10 backdrop-blur-[1px]" 
+            (click)="closeMusclesDropdown()"
+          ></div>
+        }
+
+        @if (isMusclesDropdownOpen()) {
+          <div class="absolute left-0 right-0 top-full mt-2 p-3 bg-white border border-gray-200 rounded-2xl shadow-xl z-50 flex flex-wrap gap-2 max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
+            @for (muscle of muscleGroups; track muscle.id) {
+              <button 
+                (click)="toggleMuscle(muscle.id)"
+                [class.bg-[#E8F2FE]]="selectedMuscleIds().includes(muscle.id)"
+                [class.text-sky-700]="selectedMuscleIds().includes(muscle.id)"
+                [class.border-sky-200]="selectedMuscleIds().includes(muscle.id)"
+                [class.bg-white]="!selectedMuscleIds().includes(muscle.id)"
+                [class.text-gray-700]="!selectedMuscleIds().includes(muscle.id)"
+                [class.border-gray-300]="!selectedMuscleIds().includes(muscle.id)"
+                class="px-3 py-1.5 rounded-full text-xs font-semibold border transition shadow-2xs active:scale-95 cursor-pointer"
+              >
+                {{ muscle.name }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="hidden md:flex flex-wrap gap-2">
         @for (muscle of muscleGroups; track muscle.id) {
           <button 
             (click)="toggleMuscle(muscle.id)"
@@ -119,9 +167,9 @@
           </button>
         }
       </div>
+
     </div>
 
-    <!-- Заголовок результатов + Спиннер загрузки -->
     <div>
       <h3 class="text-xl sm:text-2xl font-bold tracking-tight flex items-center gap-3">
         Найдено упражнений ({{ totalElements() }})
@@ -134,7 +182,6 @@
       </h3>
     </div>
 
-    <!-- Сетка результатов -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       @for (exercise of exercises(); track exercise.id) {
         <a 
@@ -146,7 +193,6 @@
               {{ exercise.name }}
             </span>
             
-            <!-- Задействованные мышцы -->
             <div class="flex flex-wrap gap-1.5">
               @for (m of exercise.muscles; track m.id) {
                 <span class="text-xs px-2.5 py-1 bg-gray-100 text-gray-700 rounded-md border border-gray-200/60">
@@ -172,7 +218,6 @@
       }
     </div>
 
-    <!-- Блок пагинации -->
     @if (totalPages() > 1) {
       <div class="flex items-center justify-between bg-white px-5 py-4 border border-gray-200 shadow-2xs rounded-xl mt-4">
         <button 
