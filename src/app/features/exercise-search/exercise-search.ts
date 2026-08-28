@@ -1,63 +1,108 @@
-import { Component, signal, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Exercise } from '../../models/exercise.model';
+import { RouterModule } from '@angular/router';
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
+import { ExerciseService } from '../../core/services/exercise.service';
+import { Exercise, MUSCLE_GROUPS } from '../../models/exercise.model';
 
 @Component({
   selector: 'app-exercise-search',
   standalone: true,
-  imports: [RouterLink, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './exercise-search.html'
 })
-export class ExerciseSearch {
+export class ExerciseSearch implements OnInit {
+  private exerciseService = inject(ExerciseService);
+
+  // Константы
+  readonly muscleGroups = MUSCLE_GROUPS;
+  readonly pageSize = 10;
+
+  // Состояние (Сигналы)
   searchQuery = signal<string>('');
-  selectedMuscle = signal<string | null>(null);
+  selectedMuscleIds = signal<number[]>([]); // Теперь можно выбрать несколько
+  
+  exercises = signal<Exercise[]>([]);
+  currentPage = signal<number>(1);
+  totalElements = signal<number>(0);
+  isLoading = signal<boolean>(false);
 
-  // Список всех уникальных мышц для фильтра
-  muscleChips = signal<string[]>([
-    'Грудь', 'Спина', 'Квадрицепс', 'Бицепс бедра', 'Бицепс', 'Трицепс', 'Плечи', 'Пресс'
-  ]);
+  // Вычисляемые значения для пагинации
+  totalPages = computed(() => Math.ceil(this.totalElements() / this.pageSize));
+  hasNextPage = computed(() => this.currentPage() < this.totalPages());
+  hasPrevPage = computed(() => this.currentPage() > 0);
 
-  // Моковые данные по твоей структуре бэкенда
-  exercises = signal<Exercise[]>([
-    {
-      id: 1,
-      name: 'Жим штанги лежа',
-      description: 'Базовое многосуставное упражнение для развития грудных мышц, трицепсов и передних дельт.',
-      muscles: [
-        { id: 101, name: 'Грудь', percentageOfUsage: 70 },
-        { id: 102, name: 'Трицепс', percentageOfUsage: 20 },
-        { id: 103, name: 'Плечи', percentageOfUsage: 10 }
-      ]
-    },
-    {
-      id: 2,
-      name: 'Приседания со штангой',
-      description: 'Одно из базовых упражнений силового тренинга для мышц ног и кора.',
-      muscles: [
-        { id: 104, name: 'Квадрицепс', percentageOfUsage: 60 },
-        { id: 105, name: 'Бицепс бедра', percentageOfUsage: 25 },
-        { id: 106, name: 'Пресс', percentageOfUsage: 15 }
-      ]
-    }
-  ]);
+  // RxJS Subject для задержки ввода поиска
+  private searchSubject = new Subject<string>();
 
-  // Реактивная фильтрация по названию и выбранной мышце
-  filteredExercises = computed(() => {
-    const query = this.searchQuery().toLowerCase().trim();
-    const muscle = this.selectedMuscle();
-
-    return this.exercises().filter(ex => {
-      const matchesName = ex.name.toLowerCase().includes(query);
-      const matchesMuscle = muscle 
-        ? ex.muscles.some(m => m.name.toLowerCase() === muscle.toLowerCase())
-        : true;
-
-      return matchesName && matchesMuscle;
+  ngOnInit() {
+    // Подписка на ввод текста с задержкой 400мс
+    this.searchSubject.pipe(
+      debounceTime(400),
+      distinctUntilChanged()
+    ).subscribe((query) => {
+      this.searchQuery.set(query);
+      this.currentPage.set(1); // Сбрасываем на первую страницу при новом поиске
+      this.fetchExercises();
     });
-  });
 
-  toggleMuscle(muscleName: string) {
-    this.selectedMuscle.update(current => current === muscleName ? null : muscleName);
+    // Загружаем данные при старте
+    this.fetchExercises();
+  }
+
+  // Обработчик инпута в HTML
+  onSearchChange(query: string) {
+    this.searchSubject.next(query);
+  }
+
+  // Клик по чипсу мышцы
+  toggleMuscle(muscleId: number) {
+    const current = this.selectedMuscleIds();
+    if (current.includes(muscleId)) {
+      this.selectedMuscleIds.set(current.filter(id => id !== muscleId));
+    } else {
+      this.selectedMuscleIds.set([...current, muscleId]);
+    }
+    
+    this.currentPage.set(1); // Сбрасываем пагинацию
+    this.fetchExercises();
+  }
+
+  // Пагинация
+  nextPage() {
+    if (this.hasNextPage()) {
+      this.currentPage.update(p => p + 1);
+      this.fetchExercises();
+    }
+  }
+
+  prevPage() {
+    if (this.hasPrevPage()) {
+      this.currentPage.update(p => p - 1);
+      this.fetchExercises();
+    }
+  }
+
+  // Основной метод загрузки
+  private fetchExercises() {
+    this.isLoading.set(true);
+    
+    this.exerciseService.getExercises(
+      this.currentPage(),
+      this.pageSize,
+      this.searchQuery(),
+      this.selectedMuscleIds()
+    ).subscribe({
+      next: (response) => {
+        this.exercises.set(response.data);
+        this.totalElements.set(response.total);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Ошибка загрузки упражнений', err);
+        this.isLoading.set(false);
+      }
+    });
   }
 }

@@ -32,7 +32,7 @@
           type="text" 
           placeholder="Поиск по названию..." 
           [ngModel]="searchQuery()" 
-          (ngModelChange)="searchQuery.set($event)"
+          (ngModelChange)="onSearchChange($event)"
           class="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-xl text-xs font-semibold text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition shadow-2xs"
         />
       </div>
@@ -78,7 +78,7 @@
           type="text" 
           placeholder="Поиск по названию..." 
           [ngModel]="searchQuery()" 
-          (ngModelChange)="searchQuery.set($event)"
+          (ngModelChange)="onSearchChange($event)"
           class="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-xl text-xs font-semibold text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition shadow-2xs"
         />
       </div>
@@ -95,7 +95,7 @@
         type="text" 
         placeholder="Поиск по названию..." 
         [ngModel]="searchQuery()" 
-        (ngModelChange)="searchQuery.set($event)"
+        (ngModelChange)="onSearchChange($event)"
         class="w-full pl-11 pr-4 py-3 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition shadow-2xs"
       />
     </div>
@@ -104,33 +104,39 @@
     <div class="flex flex-col gap-3">
       <h2 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Мышечные группы</h2>
       <div class="flex flex-wrap gap-2">
-        @for (muscle of muscleChips(); track muscle) {
+        @for (muscle of muscleGroups; track muscle.id) {
           <button 
-            (click)="toggleMuscle(muscle)"
-            [class.bg-[#E8F2FE]]="selectedMuscle() === muscle"
-            [class.text-sky-700]="selectedMuscle() === muscle"
-            [class.border-sky-200]="selectedMuscle() === muscle"
-            [class.bg-white]="selectedMuscle() !== muscle"
-            [class.text-gray-700]="selectedMuscle() !== muscle"
-            [class.border-gray-300]="selectedMuscle() !== muscle"
+            (click)="toggleMuscle(muscle.id)"
+            [class.bg-[#E8F2FE]]="selectedMuscleIds().includes(muscle.id)"
+            [class.text-sky-700]="selectedMuscleIds().includes(muscle.id)"
+            [class.border-sky-200]="selectedMuscleIds().includes(muscle.id)"
+            [class.bg-white]="!selectedMuscleIds().includes(muscle.id)"
+            [class.text-gray-700]="!selectedMuscleIds().includes(muscle.id)"
+            [class.border-gray-300]="!selectedMuscleIds().includes(muscle.id)"
             class="px-4 py-2 rounded-full text-xs font-semibold border hover:bg-gray-50 hover:border-gray-400 transition shadow-2xs active:scale-95 cursor-pointer"
           >
-            {{ muscle }}
+            {{ muscle.name }}
           </button>
         }
       </div>
     </div>
 
-    <!-- Заголовок результатов -->
+    <!-- Заголовок результатов + Спиннер загрузки -->
     <div>
-      <h3 class="text-xl sm:text-2xl font-bold tracking-tight">
-        Найдено упражнений ({{ filteredExercises().length }})
+      <h3 class="text-xl sm:text-2xl font-bold tracking-tight flex items-center gap-3">
+        Найдено упражнений ({{ totalElements() }})
+        @if (isLoading()) {
+          <svg class="animate-spin h-5 w-5 text-sky-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        }
       </h3>
     </div>
 
     <!-- Сетка результатов -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      @for (exercise of filteredExercises(); track exercise.id) {
+      @for (exercise of exercises(); track exercise.id) {
         <a 
           [routerLink]="['/exercise', exercise.id]"
           class="bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs hover:border-gray-300 transition flex items-center justify-between group cursor-pointer"
@@ -157,12 +163,37 @@
           </div>
         </a>
       } @empty {
-        <div class="col-span-full text-center py-16 bg-white rounded-2xl border border-dashed border-gray-300 shadow-2xs">
-          <p class="text-gray-600 font-medium">Ничего не найдено</p>
-          <p class="text-xs text-gray-400 mt-1">Попробуйте изменить поисковый запрос или фильтр</p>
-        </div>
+        @if (!isLoading()) {
+          <div class="col-span-full text-center py-16 bg-white rounded-2xl border border-dashed border-gray-300 shadow-2xs">
+            <p class="text-gray-600 font-medium">Ничего не найдено</p>
+            <p class="text-xs text-gray-400 mt-1">Попробуйте изменить поисковый запрос или фильтр</p>
+          </div>
+        }
       }
     </div>
+
+    <!-- Блок пагинации -->
+    @if (totalPages() > 1) {
+      <div class="flex items-center justify-between bg-white px-5 py-4 border border-gray-200 shadow-2xs rounded-xl mt-4">
+        <button 
+          (click)="prevPage()" 
+          [disabled]="!hasPrevPage()"
+          class="relative inline-flex items-center rounded-lg px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed transition">
+          Назад
+        </button>
+        
+        <span class="text-sm text-gray-600">
+          Страница <span class="font-bold text-gray-900">{{ currentPage() }}</span> из <span class="font-bold text-gray-900">{{ totalPages() }}</span>
+        </span>
+        
+        <button 
+          (click)="nextPage()" 
+          [disabled]="!hasNextPage()"
+          class="relative inline-flex items-center rounded-lg px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed transition">
+          Вперед
+        </button>
+      </div>
+    }
 
   </main>
 </div>
