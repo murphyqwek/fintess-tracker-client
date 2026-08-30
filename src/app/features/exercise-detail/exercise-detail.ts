@@ -19,7 +19,6 @@ export class ExerciseDetail implements OnInit {
   isLoading = signal<boolean>(true);
   error = signal<string | null>(null);
 
-  // Основная целевая группа (с наибольшим процентом)
   primaryMuscle = computed(() => {
     const muscles = this.exercise()?.muscles;
     if (!muscles || muscles.length === 0) return null;

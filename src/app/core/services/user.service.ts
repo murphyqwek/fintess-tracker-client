@@ -1,4 +1,3 @@
-// user.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -13,5 +12,9 @@ export class UserService {
 
   getCurrentUser(): Observable<UserProfile> {
     return this.http.get<UserProfile>(this.apiUrl);
+  }
+
+  updateCurrentUser(profile: Partial<UserProfile>): Observable<UserProfile> {
+    return this.http.patch<UserProfile>(this.apiUrl, profile);
   }
 }

@@ -1,4 +1,3 @@
-// dashboard.component.ts
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { UserService } from '../../core/services/user.service';

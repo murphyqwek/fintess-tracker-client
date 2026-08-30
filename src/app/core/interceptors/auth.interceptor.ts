@@ -3,7 +3,6 @@ import { inject } from '@angular/core';
 import { AuthService } from '../services/auth.service';
 import { BehaviorSubject, Observable, catchError, filter, switchMap, take, throwError } from 'rxjs';
 
-// Флаг и сабжект вынесены за пределы функции, чтобы сохранять состояние между запросами
 let isRefreshing = false;
 const refreshTokenSubject = new BehaviorSubject<any>(null);
 
@@ -11,7 +10,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
 
   const authReq = req.clone({
-    withCredentials: true // Для отправки куки с токенами
+    withCredentials: true
   });
 
   return next(authReq).pipe(
@@ -27,14 +26,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 function handle401Error(request: HttpRequest<any>, next: HttpHandlerFn, authService: AuthService): Observable<HttpEvent<any>> {
   if (!isRefreshing) {
     isRefreshing = true;
-    refreshTokenSubject.next(null); // Сбрасываем сабжект
+    refreshTokenSubject.next(null);
 
     return authService.refreshToken().pipe(
       switchMap((tokenResponse) => {
         isRefreshing = false;
-        // Даем сигнал остальным запросам в очереди, что рефреш успешен
         refreshTokenSubject.next(tokenResponse);
-        // Повторяем оригинальный запрос (с withCredentials он подхватит новую куку)
         return next(request);
       }),
       catchError((err) => {
@@ -44,12 +41,10 @@ function handle401Error(request: HttpRequest<any>, next: HttpHandlerFn, authServ
       })
     );
   } else {
-    // Если рефреш УЖЕ идет, мы ставим этот запрос в ожидание
     return refreshTokenSubject.pipe(
-      filter(token => token !== null), // Ждем, пока token не станет не null (значит рефреш прошел)
-      take(1), // Берем 1 значение и отписываемся
+      filter(token => token !== null),
+      take(1),
       switchMap(() => {
-        // Повторяем запрос после успешного рефреша
         return next(request);
       })
     );

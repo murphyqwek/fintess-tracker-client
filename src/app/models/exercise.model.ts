@@ -1,4 +1,3 @@
-// models/exercise.model.ts
 export interface Muscle {
   id: number;
   name: string;
@@ -25,7 +24,6 @@ export interface PageResponse<T> {
   data: T[];
 }
 
-// Хардкодим мышцы с твоего скриншота БД
 export const MUSCLE_GROUPS: Muscle[] = [
   { id: 1, name: 'Грудные мышцы' },
   { id: 2, name: 'Передние дельты' },

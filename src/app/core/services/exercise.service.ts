@@ -1,4 +1,3 @@
-// services/exercise.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -24,7 +23,6 @@ export class ExerciseService {
     }
 
     if (muscleIds && muscleIds.length > 0) {
-      // Angular HttpParams умеет отправлять массивы, если добавлять их через append
       muscleIds.forEach(id => {
         params = params.append('muscleIds', id);
       });
