@@ -34,6 +34,7 @@ export class ProfileSettings implements OnInit {
 
   isLoading = signal<boolean>(true);
   isSaving = signal<boolean>(false);
+  showConfirmModal = signal<boolean>(false);
   error = signal<string | null>(null);
   successMessage = signal<string | null>(null);
   user = signal<UserProfile | null>(null);
@@ -89,12 +90,21 @@ export class ProfileSettings implements OnInit {
     });
   }
 
-  onSubmit(): void {
+  onFormSubmit(): void {
     if (this.profileForm.invalid) {
       this.profileForm.markAllAsTouched();
       return;
     }
 
+    this.showConfirmModal.set(true);
+  }
+
+  closeConfirmModal(): void {
+    if (this.isSaving()) return;
+    this.showConfirmModal.set(false);
+  }
+
+  confirmSave(): void {
     this.isSaving.set(true);
     this.successMessage.set(null);
     this.error.set(null);
@@ -115,12 +125,14 @@ export class ProfileSettings implements OnInit {
         this.user.set(merged);
         this.profileForm.markAsPristine();
         this.isSaving.set(false);
+        this.showConfirmModal.set(false);
         this.successMessage.set('Профиль успешно обновлен!');
         setTimeout(() => this.successMessage.set(null), 4000);
       },
       error: () => {
         this.error.set('Ошибка при сохранении данных. Проверьте введенные поля.');
         this.isSaving.set(false);
+        this.showConfirmModal.set(false);
       }
     });
   }
