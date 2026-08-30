@@ -1,5 +1,8 @@
-import { Component, signal } from '@angular/core';
+// dashboard.component.ts
+import { Component, signal, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { UserService } from '../../core/services/user.service';
+import { UserProfile } from '../../models/user.model';
 
 interface StatItem {
   title: string;
@@ -21,11 +24,13 @@ interface PastWorkoutItem {
   imports: [RouterLink],
   templateUrl: './dashboard.html'
 })
-export class DashboardComponent {
-  userName = signal('Арсений');
+export class DashboardComponent implements OnInit {
+  private userService = inject(UserService);
+
+  userName = signal<string>('');
 
   stats = signal<StatItem[]>([
-    { title: 'Текущий вес', value: '71,5', unit: 'кг' },
+    { title: 'Текущий вес', value: '—', unit: 'кг' },
     { title: 'Объем за месяц', value: '12 400', unit: 'кг' },
     { title: 'Рекорд недели', value: '140', unit: 'кг' }
   ]);
@@ -53,4 +58,30 @@ export class DashboardComponent {
       exercises: 'Беговая дорожка, Скручивания, Подъем ног на турнике, Берпи'
     }
   ]);
+
+  ngOnInit(): void {
+    this.loadUserData();
+  }
+
+  private loadUserData(): void {
+    this.userService.getCurrentUser().subscribe({
+      next: (user: UserProfile) => {
+        const displayName = user.name?.trim() ? user.name : user.login;
+        this.userName.set(displayName);
+
+        if (user.weight !== null && user.weight !== undefined) {
+          this.stats.update((items) =>
+            items.map((item) =>
+              item.title === 'Текущий вес'
+                ? { ...item, value: user.weight!.toString().replace('.', ',') }
+                : item
+            )
+          );
+        }
+      },
+      error: (err) => {
+        console.error('Ошибка при загрузке профиля пользователя:', err);
+      }
+    });
+  }
 }

@@ -1,14 +1,18 @@
 <div class="min-h-screen bg-[#F9F9FB] flex flex-col lg:flex-row text-gray-900 font-sans">
 
-  <aside class="w-full lg:w-72 xl:w-80 bg-white lg:min-h-screen border-b lg:border-b-0 lg:border-r border-gray-200 p-5 lg:p-7 flex flex-col gap-6 shrink-0">
+  <aside class="w-full lg:w-80 xl:w-96 bg-white lg:min-h-screen border-b lg:border-b-0 lg:border-r border-gray-200 p-5 lg:p-7 flex flex-col gap-6 shrink-0">
     
-    <div class="flex items-center gap-3.5">
+    <div class="flex items-center gap-3.5 min-w-0">
       <div class="w-12 h-12 rounded-full bg-[#E8F2FE] text-sky-600 flex items-center justify-center border border-sky-100 shrink-0">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
         </svg>
       </div>
-      <h1 class="text-2xl font-bold tracking-tight">Привет, {{ userName() }}!</h1>
+      <h1 
+        class="text-2xl font-bold tracking-tight truncate cursor-default" 
+        [title]="'Привет, ' + userName() + '!'">
+        Привет, {{ userName() }}!
+      </h1>
     </div>
 
     <hr class="hidden lg:block border-gray-100" />
