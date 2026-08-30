@@ -6,6 +6,7 @@ import { regLoginGuard } from './core/guards/reg.login.guard';
 import { DashboardComponent } from './features/dashboard/dashboard';
 import { ExerciseSearch } from './features/exercise-search/exercise-search';
 import { ExerciseDetail } from './features/exercise-detail/exercise-detail';
+import { ProfileSettings } from './features/profile-settings/profile-settings';
 
 export const routes: Routes = [
     {
@@ -35,6 +36,12 @@ export const routes: Routes = [
     { 
         path: 'exercise/:id', 
         component: ExerciseDetail, 
+        canActivate: [authGuard]
+    },
+
+    {
+        path: 'me',
+        component: ProfileSettings,
         canActivate: [authGuard]
     },
 

@@ -1,0 +1,278 @@
+<div class="min-h-screen bg-[#F9F9FB] flex flex-col lg:flex-row text-gray-900 font-sans">
+  
+  <aside class="hidden lg:flex flex-col w-72 xl:w-80 bg-white lg:min-h-screen border-r border-gray-200 p-5 lg:p-7 shrink-0 gap-6">
+    
+    <div class="flex items-center gap-3.5">
+      <button 
+        (click)="goBack()" 
+        class="w-10 h-10 rounded-full bg-[#E8F2FE] text-sky-600 border border-sky-100 hover:bg-sky-100 flex items-center justify-center transition shrink-0 cursor-pointer"
+        aria-label="Назад"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+      <h1 class="text-xl font-bold tracking-tight text-gray-900">Профиль</h1>
+    </div>
+
+    <hr class="border-gray-100" />
+
+    @if (user(); as u) {
+      <div class="flex flex-col gap-4">
+        
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-[#E8F2FE] text-sky-700 font-extrabold flex items-center justify-center text-lg border border-sky-200 uppercase">
+            {{ u.name ? u.name.charAt(0) : 'U' }}
+          </div>
+          <div class="flex flex-col min-w-0">
+            <span class="text-sm font-bold text-gray-900 truncate">{{ u.name || 'Пользователь' }}</span>
+            <span class="text-xs text-gray-400">Настройки аккаунта</span>
+          </div>
+        </div>
+
+        <hr class="border-gray-100" />
+
+        <div class="flex flex-col gap-1.5">
+          <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Индекс массы (ИМТ)</span>
+          @if (bmi()) {
+            <span class="text-sm font-semibold text-sky-700 bg-[#E8F2FE] border border-sky-200 px-3 py-1.5 rounded-xl w-fit">
+              {{ bmi() }} кг/м²
+            </span>
+          } @else {
+            <span class="text-xs text-gray-400 font-medium">Заполните рост и вес</span>
+          }
+        </div>
+
+        <div class="flex flex-col gap-2 pt-1">
+          <div class="flex justify-between items-center text-xs">
+            <span class="text-gray-400 font-medium">Рост:</span>
+            <span class="font-bold text-gray-800">{{ u.height ? u.height + ' см' : '—' }}</span>
+          </div>
+          <div class="flex justify-between items-center text-xs">
+            <span class="text-gray-400 font-medium">Вес:</span>
+            <span class="font-bold text-gray-800">{{ u.weight ? u.weight + ' кг' : '—' }}</span>
+          </div>
+          <div class="flex justify-between items-center text-xs">
+            <span class="text-gray-400 font-medium">Дата рожд.:</span>
+            <span class="font-bold text-gray-800">{{ u.birthDay || '—' }}</span>
+          </div>
+        </div>
+
+      </div>
+
+      <hr class="border-gray-100" />
+    }
+
+  </aside>
+
+  <main class="flex-1 p-4 sm:p-7 lg:p-10 flex flex-col gap-6 w-full max-w-5xl mx-auto lg:mx-0">
+    
+    <div class="flex items-center gap-3.5 lg:hidden">
+      <button 
+        (click)="goBack()" 
+        class="w-10 h-10 rounded-full bg-[#E8F2FE] text-sky-600 border border-sky-100 hover:bg-sky-100 flex items-center justify-center transition shrink-0 cursor-pointer"
+        aria-label="Назад"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+      <h1 class="text-xl sm:text-2xl font-bold tracking-tight">Настройки профиля</h1>
+    </div>
+
+    @if (isLoading()) {
+      <div class="flex items-center justify-center py-20">
+        <svg class="animate-spin h-8 w-8 text-sky-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </div>
+    }
+
+    @else if (error() && !user()) {
+      <div class="bg-white p-8 rounded-2xl border border-red-200 text-center shadow-2xs">
+        <p class="text-gray-800 font-bold mb-3">{{ error() }}</p>
+        <button 
+          (click)="loadProfile()" 
+          class="px-4 py-2 bg-[#E8F2FE] text-sky-700 hover:bg-sky-100 border border-sky-200 rounded-xl text-xs font-semibold transition cursor-pointer"
+        >
+          Повторить попытку
+        </button>
+      </div>
+    }
+
+    @else {
+      
+      <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
+
+        @if (successMessage()) {
+          <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            {{ successMessage() }}
+          </div>
+        }
+
+        @if (error() && user()) {
+          <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
+            <svg class="w-5 h-5 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{ error() }}
+          </div>
+        }
+
+        <section class="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200 shadow-2xs flex flex-col gap-5">
+          
+          <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+            <h2 class="text-lg font-bold text-gray-900 tracking-tight">
+              Личные данные
+            </h2>
+            <span class="px-3 py-1 bg-[#E8F2FE] text-sky-700 border border-sky-200 rounded-full text-xs font-bold uppercase tracking-wider">
+              Основное
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div class="flex flex-col gap-1.5">
+              <label for="name" class="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                Имя пользователя
+              </label>
+              <input 
+                id="name"
+                type="text"
+                formControlName="name"
+                placeholder="Введите ваше имя"
+                maxlength="20"
+                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-[#F9F9FB]/50 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition"
+                [class.border-red-400]="isInvalid('name')"
+              />
+              @if (isInvalid('name')) {
+                <span class="text-xs text-red-500 font-medium">
+                  Имя не должно превышать 20 символов
+                </span>
+              }
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label for="birthDay" class="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                Дата рождения
+              </label>
+              <input 
+                id="birthDay"
+                type="date"
+                [max]="todayDate"
+                formControlName="birthDay"
+                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-[#F9F9FB]/50 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition"
+                [class.border-red-400]="isInvalid('birthDay')"
+              />
+              @if (isInvalid('birthDay')) {
+                <span class="text-xs text-red-500 font-medium">
+                  Дата рождения не может быть в будущем
+                </span>
+              }
+            </div>
+          </div>
+
+        </section>
+
+        <section class="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200 shadow-2xs flex flex-col gap-5">
+          
+          <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+            <h2 class="text-lg font-bold text-gray-900 tracking-tight">
+              Антропометрия
+            </h2>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div class="flex flex-col gap-1.5">
+              <label for="height" class="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                Рост (см)
+              </label>
+              <div class="relative">
+                <input 
+                  id="height"
+                  type="number"
+                  formControlName="height"
+                  placeholder="175"
+                  min="0"
+                  max="300"
+                  class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-[#F9F9FB]/50 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition pr-12"
+                  [class.border-red-400]="isInvalid('height')"
+                />
+                <span class="absolute right-3.5 top-2.5 text-xs text-gray-400 font-semibold pointer-events-none">
+                  см
+                </span>
+              </div>
+              @if (isInvalid('height')) {
+                <span class="text-xs text-red-500 font-medium">
+                  Рост должен быть от 0 до 300 см
+                </span>
+              }
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label for="weight" class="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                Вес (кг)
+              </label>
+              <div class="relative">
+                <input 
+                  id="weight"
+                  type="number"
+                  step="0.1"
+                  formControlName="weight"
+                  placeholder="70"
+                  min="0"
+                  max="1000"
+                  class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-[#F9F9FB]/50 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition pr-12"
+                  [class.border-red-400]="isInvalid('weight')"
+                />
+                <span class="absolute right-3.5 top-2.5 text-xs text-gray-400 font-semibold pointer-events-none">
+                  кг
+                </span>
+              </div>
+              @if (isInvalid('weight')) {
+                <span class="text-xs text-red-500 font-medium">
+                  Вес должен быть от 0 до 1000 кг
+                </span>
+              }
+            </div>
+          </div>
+
+          
+
+        </section>
+
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button 
+            type="button" 
+            (click)="goBack()"
+            class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl text-sm transition cursor-pointer"
+          >
+            Отмена
+          </button>
+          
+          <button 
+            type="submit" 
+            [disabled]="isSaving() || profileForm.invalid"
+            class="px-6 py-2.5 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl text-sm transition flex items-center gap-2 cursor-pointer shadow-xs"
+          >
+            @if (isSaving()) {
+              <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Сохранение...</span>
+            } @else {
+              <span>Сохранить изменения</span>
+            }
+          </button>
+        </div>
+
+      </form>
+
+    }
+
+  </main>
+</div>
