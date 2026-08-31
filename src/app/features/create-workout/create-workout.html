@@ -1,0 +1,454 @@
+<div class="min-h-screen bg-[#F9F9FB] flex flex-col lg:flex-row text-gray-900 font-sans relative">
+
+  <!-- БОКОВАЯ ПАНЕЛЬ (Десктоп) -->
+  <aside class="hidden lg:flex flex-col w-80 xl:w-96 bg-white lg:min-h-screen border-r border-gray-200 p-6 lg:p-8 shrink-0 gap-6">
+    
+    <div class="flex items-center gap-3.5">
+      <button 
+        (click)="goBack()" 
+        class="w-10 h-10 rounded-full bg-[#E8F2FE] text-sky-600 border border-sky-100 hover:bg-sky-100 flex items-center justify-center transition shrink-0 cursor-pointer"
+        aria-label="Назад"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+      <div>
+        <h1 class="text-xl font-bold tracking-tight text-gray-900">Новая тренировка</h1>
+        <p class="text-xs text-gray-500">Заполните детали и подходы</p>
+      </div>
+    </div>
+
+    <hr class="border-gray-100" />
+
+    <!-- Сводка параметров -->
+    <div class="flex flex-col gap-4">
+      <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Текущие показатели</span>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-[#E8F2FE] rounded-xl p-3 border border-sky-100 flex flex-col">
+          <span class="text-[11px] font-semibold text-gray-600">Упражнений</span>
+          <span class="text-xl font-extrabold text-gray-900 mt-0.5">{{ totalExercisesCount() }}</span>
+        </div>
+
+        <div class="bg-[#E8F2FE] rounded-xl p-3 border border-sky-100 flex flex-col">
+          <span class="text-[11px] font-semibold text-gray-600">Всего сетов</span>
+          <span class="text-xl font-extrabold text-gray-900 mt-0.5">{{ totalSetsCount() }}</span>
+        </div>
+      </div>
+
+      <div class="bg-gray-50 rounded-xl p-3.5 border border-gray-200 flex flex-col">
+        <span class="text-[11px] font-semibold text-gray-500">Общий тоннаж</span>
+        <div class="flex items-baseline gap-1 mt-0.5">
+          <span class="text-2xl font-extrabold text-gray-900 tracking-tight">{{ totalVolume() }}</span>
+          <span class="text-xs font-semibold text-gray-600">кг</span>
+        </div>
+      </div>
+    </div>
+
+    <hr class="border-gray-100" />
+
+    <!-- Кнопки управления -->
+    <div class="mt-auto flex flex-col gap-3">
+      <button 
+        (click)="saveWorkout()"
+        [disabled]="isSubmitting()"
+        class="w-full py-3.5 px-5 bg-sky-600 hover:bg-sky-700 text-white rounded-full text-sm font-bold shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+      >
+        @if (isSubmitting()) {
+          <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>Сохранение...</span>
+        } @else {
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          <span>Завершить тренировку</span>
+        }
+      </button>
+
+      <button 
+        (click)="goBack()"
+        class="w-full py-3 px-5 bg-white border border-gray-300 rounded-full text-xs font-semibold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
+      >
+        Отмена
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- ОСНОВНАЯ ЧАСТЬ ЭКРАНА -->
+  <main class="flex-1 p-4 sm:p-7 lg:p-10 flex flex-col gap-6 w-full max-w-4xl mx-auto lg:mx-0 pb-28 lg:pb-10">
+    
+    <!-- Шапка для мобильных -->
+    <div class="flex items-center justify-between lg:hidden">
+      <div class="flex items-center gap-3">
+        <button 
+          (click)="goBack()" 
+          class="w-10 h-10 rounded-full bg-[#E8F2FE] text-sky-600 border border-sky-100 hover:bg-sky-100 flex items-center justify-center transition shrink-0 cursor-pointer"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </button>
+        <h1 class="text-xl font-bold tracking-tight">Новая тренировка</h1>
+      </div>
+    </div>
+
+    <!-- Блок ошибок / 409 Conflict -->
+    @if (errorMessage()) {
+      <div class="p-4 rounded-2xl border flex items-start gap-3.5 transition"
+           [ngClass]="isConflictError() ? 'bg-amber-50 border-amber-200 text-amber-900' : 'bg-red-50 border-red-200 text-red-900'">
+        
+        <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+             [ngClass]="isConflictError() ? 'bg-amber-200 text-amber-800' : 'bg-red-200 text-red-800'">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+        </div>
+
+        <div class="flex-1 text-sm">
+          <p class="font-bold">{{ isConflictError() ? 'Конфликт запроса (409 Conflict)' : 'Внимание' }}</p>
+          <p class="mt-0.5 text-xs opacity-90 leading-relaxed">{{ errorMessage() }}</p>
+        </div>
+
+        <button (click)="errorMessage.set(null)" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    }
+
+    <!-- СЕКЦИЯ 1: Данные о тренировке -->
+    <section class="bg-white p-5 sm:p-7 rounded-2xl border border-gray-200 shadow-2xs flex flex-col gap-4">
+      <h2 class="text-base sm:text-lg font-bold text-gray-900 tracking-tight">
+        1. Основная информация
+      </h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        
+        <div class="flex flex-col gap-1.5 sm:col-span-1">
+          <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+            Название тренировки <span class="text-red-500">*</span>
+          </label>
+          <input 
+            type="text" 
+            [ngModel]="workoutName()" 
+            (ngModelChange)="workoutName.set($event)"
+            placeholder="Например: День ног и плечи"
+            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-100 outline-none text-sm transition font-medium"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1.5 sm:col-span-1">
+          <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+            Дата и время начала
+          </label>
+          <input 
+            type="datetime-local" 
+            [ngModel]="workoutDate()" 
+            (ngModelChange)="workoutDate.set($event)"
+            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-100 outline-none text-sm transition font-medium text-gray-700"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1.5 sm:col-span-2">
+          <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+            Описание / Заметки
+          </label>
+          <textarea 
+            rows="2"
+            [ngModel]="workoutDescription()" 
+            (ngModelChange)="workoutDescription.set($event)"
+            placeholder="Самочувствие, комментарии к весам..."
+            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-100 outline-none text-sm transition resize-none font-medium"
+          ></textarea>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- СЕКЦИЯ 2: Поиск и упражнения -->
+    <section class="bg-white p-5 sm:p-7 rounded-2xl border border-gray-200 shadow-2xs flex flex-col gap-4">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <h2 class="text-base sm:text-lg font-bold text-gray-900 tracking-tight">
+          2. Упражнения и подходы
+        </h2>
+        <span class="text-xs text-gray-400 font-medium">Добавлено упражнений: {{ selectedExercises().length }}</span>
+      </div>
+
+      <!-- Поисковый блок (Top 5) -->
+      <div class="relative">
+        <div class="relative flex items-center">
+          <svg class="w-5 h-5 text-gray-400 absolute left-3.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          
+          <input 
+            type="text" 
+            [ngModel]="searchQuery()" 
+            (ngModelChange)="onSearchInput($event)"
+            (focus)="isSearchDropdownOpen.set(true)"
+            placeholder="Поиск упражнения (выводит 5 лучших)..."
+            class="w-full pl-11 pr-10 py-3 bg-[#F9F9FB] border border-gray-200 rounded-2xl focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-100 outline-none text-sm transition font-medium"
+          />
+
+          @if (isSearching()) {
+            <svg class="animate-spin h-5 w-5 text-sky-600 absolute right-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          }
+        </div>
+
+        <!-- Выпадающий список поиска -->
+        @if (isSearchDropdownOpen() && searchQuery().trim().length > 0) {
+          <div class="absolute z-20 top-full left-0 right-0 mt-2 bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden divide-y divide-gray-100">
+            @if (searchResults().length > 0) {
+              @for (res of searchResults(); track res.id) {
+                <button 
+                  (click)="selectExercise(res)"
+                  class="w-full text-left p-3.5 hover:bg-[#E8F2FE]/50 transition flex items-center justify-between gap-3 group cursor-pointer"
+                >
+                  <div class="flex flex-col min-w-0">
+                    <span class="font-bold text-sm text-gray-900 group-hover:text-sky-700 truncate">
+                      {{ res.name }}
+                    </span>
+                    <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                      @for (m of res.muscles; track m.id) {
+                        <span class="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md font-semibold">
+                          {{ m.name }}
+                        </span>
+                      }
+                    </div>
+                  </div>
+
+                  <span class="w-8 h-8 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center shrink-0 group-hover:bg-sky-600 group-hover:text-white transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                  </span>
+                </button>
+              }
+            } @else if (!isSearching()) {
+              <div class="p-4 text-center text-xs text-gray-500">
+                По запросу «{{ searchQuery() }}» ничего не найдено
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <hr class="border-gray-100 my-1" />
+
+      <!-- СПИСОК УПРАЖНЕНИЙ -->
+      @if (selectedExercises().length > 0) {
+        <div class="flex flex-col gap-5">
+          @for (item of selectedExercises(); track $index; let exIdx = $index) {
+            
+            <div class="bg-[#F9F9FB] rounded-2xl border border-gray-200 p-4 sm:p-5 flex flex-col gap-3.5 transition">
+              
+              <!-- Шапка упражнения -->
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <span class="w-7 h-7 rounded-lg bg-[#E8F2FE] text-sky-700 text-xs font-bold flex items-center justify-center shrink-0 border border-sky-200">
+                    {{ exIdx + 1 }}
+                  </span>
+                  <div class="min-w-0">
+                    <h3 class="text-base font-bold text-gray-900 truncate">
+                      {{ item.exercise.name }}
+                    </h3>
+                    @if (item.exercise.muscles && item.exercise.muscles.length > 0) {
+                      <div class="flex flex-wrap gap-1 mt-1">
+                        @for (m of item.exercise.muscles; track m.id) {
+                          <span class="text-[10px] text-sky-700 font-semibold bg-white border border-sky-100 px-2 py-0.5 rounded-md">
+                            {{ m.name }}
+                          </span>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <button 
+                  (click)="removeExercise(exIdx)"
+                  class="text-gray-400 hover:text-red-500 transition p-1.5 rounded-lg hover:bg-red-50 shrink-0 cursor-pointer"
+                  title="Удалить упражнение"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Таблица сетов -->
+              <div class="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 flex flex-col gap-2.5">
+                <div class="grid grid-cols-12 gap-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider px-1">
+                  <div class="col-span-2 sm:col-span-1 text-center">Сет</div>
+                  <div class="col-span-5 sm:col-span-5 text-center">Вес (кг)</div>
+                  <div class="col-span-4 sm:col-span-5 text-center">Повторения</div>
+                  <div class="col-span-1 text-center"></div>
+                </div>
+
+                @for (set of item.sets; track $index; let setIdx = $index) {
+                  <div class="grid grid-cols-12 gap-2 items-center">
+                    
+                    <div class="col-span-2 sm:col-span-1 text-center font-bold text-xs text-gray-500 bg-gray-50 py-2 rounded-lg border border-gray-100">
+                      {{ setIdx + 1 }}
+                    </div>
+
+                    <div class="col-span-5 sm:col-span-5">
+                      <input 
+                        type="number" 
+                        min="0" 
+                        step="0.5"
+                        [(ngModel)]="set.weight"
+                        placeholder="0"
+                        class="w-full text-center py-2 px-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-100 outline-none text-sm font-bold text-gray-900 transition"
+                      />
+                    </div>
+
+                    <div class="col-span-4 sm:col-span-5">
+                      <input 
+                        type="number" 
+                        min="1" 
+                        step="1"
+                        [(ngModel)]="set.repetitions"
+                        placeholder="0"
+                        class="w-full text-center py-2 px-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-100 outline-none text-sm font-bold text-gray-900 transition"
+                      />
+                    </div>
+
+                    <div class="col-span-1 flex justify-center">
+                      @if (item.sets.length > 1) {
+                        <button 
+                          (click)="removeSet(exIdx, setIdx)" 
+                          class="text-gray-300 hover:text-red-500 transition p-1 cursor-pointer"
+                          title="Удалить подход"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                          </svg>
+                        </button>
+                      }
+                    </div>
+
+                  </div>
+                }
+
+                <button 
+                  (click)="addSet(exIdx)"
+                  class="mt-2 w-full py-2 bg-[#E8F2FE]/70 hover:bg-[#E8F2FE] text-sky-700 rounded-xl text-xs font-bold border border-sky-100 transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                  </svg>
+                  <span>Добавить подход</span>
+                </button>
+
+              </div>
+
+            </div>
+
+          }
+        </div>
+      } @else {
+        <!-- Пустое состояние -->
+        <div class="bg-gray-50/70 rounded-2xl p-8 border border-gray-200 border-dashed text-center flex flex-col items-center justify-center gap-2.5">
+          <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-gray-400 border border-gray-200 shadow-2xs">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+          </div>
+          <p class="text-sm font-semibold text-gray-700">Упражнения еще не добавлены</p>
+          <p class="text-xs text-gray-400 max-w-sm">Используйте поиск выше, чтобы выбрать нужные упражнения и ввести веса с повторениями.</p>
+        </div>
+      }
+
+    </section>
+
+  </main>
+
+  <!-- МОБИЛЬНЫЙ БАР СОХРАНЕНИЯ -->
+  <div class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 p-4 flex items-center gap-3 z-30 shadow-lg">
+    <div class="flex flex-col">
+      <span class="text-[10px] uppercase font-bold text-gray-400">Объем</span>
+      <span class="text-sm font-extrabold text-gray-900">{{ totalVolume() }} кг</span>
+    </div>
+    
+    <button 
+      (click)="saveWorkout()"
+      [disabled]="isSubmitting()"
+      class="flex-1 py-3 px-5 bg-sky-600 hover:bg-sky-700 text-white rounded-full text-xs font-bold shadow-sm transition disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+    >
+      @if (isSubmitting()) {
+        <span>Сохранение...</span>
+      } @else {
+        <span>Сохранить тренировку</span>
+      }
+    </button>
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО УСПЕХА -->
+  @if (showSuccessModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+      
+      <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-gray-200 shadow-2xl flex flex-col items-center text-center gap-5 animate-in fade-in zoom-in-95 duration-200">
+        
+        <div class="w-16 h-16 rounded-full bg-[#E8F2FE] text-sky-600 border border-sky-100 flex items-center justify-center">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+          </svg>
+        </div>
+
+        <div>
+          <h3 class="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">Тренировка сохранена!</h3>
+          <p class="text-xs sm:text-sm text-gray-500 mt-1.5">
+            Тренировка успешно добавлена в вашу статистику.
+          </p>
+        </div>
+
+        <div class="flex flex-col w-full gap-2.5 pt-2">
+          
+          <!-- 1. На страницу тренировки -->
+          <button 
+            (click)="goToCreatedWorkout()"
+            class="w-full py-3.5 px-4 bg-sky-600 hover:bg-sky-700 text-white rounded-full text-xs font-bold shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <span>Перейти к тренировке</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+            </svg>
+          </button>
+
+          <!-- 2. Создать еще одну -->
+          <button 
+            (click)="resetForm()"
+            class="w-full py-3.5 px-4 bg-[#E8F2FE] hover:bg-sky-100 text-sky-700 border border-sky-200 rounded-full text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            <span>Создать новую тренировку</span>
+          </button>
+
+          <!-- 3. На главную -->
+          <button 
+            (click)="goToDashboard()"
+            class="w-full py-3 px-4 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 rounded-full text-xs font-semibold transition cursor-pointer"
+          >
+            На главную
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+  }
+
+</div>

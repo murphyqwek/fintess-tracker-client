@@ -1,7 +1,9 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { UserService } from '../../core/services/user.service';
+import { WorkoutService } from '../../core/services/workout.service';
 import { UserProfile } from '../../models/user.model';
+import { WorkoutDto } from '../../models/workout.model';
 
 interface StatItem {
   title: string;
@@ -10,10 +12,10 @@ interface StatItem {
 }
 
 interface PastWorkoutItem {
-  id: number;
+  id: string;
   title: string;
   dateStr: string;
-  duration: string;
+  duration?: string;
   exercises: string;
 }
 
@@ -25,6 +27,7 @@ interface PastWorkoutItem {
 })
 export class DashboardComponent implements OnInit {
   private userService = inject(UserService);
+  private workoutService = inject(WorkoutService);
 
   userName = signal<string>('');
 
@@ -34,32 +37,11 @@ export class DashboardComponent implements OnInit {
     { title: 'Рекорд недели', value: '140', unit: 'кг' }
   ]);
 
-  pastWorkouts = signal<PastWorkoutItem[]>([
-    {
-      id: 1,
-      title: 'Силовая тренировка А',
-      dateStr: 'Вчера, 18:30',
-      duration: '1 ч 15 мин',
-      exercises: 'Приседания со штангой, Жим лежа, Тяга штанги в наклоне, Подъем на бицепс'
-    },
-    {
-      id: 2,
-      title: 'Фулбоди тренировка',
-      dateStr: '3 дня назад',
-      duration: '1 ч',
-      exercises: 'Становая тяга, Отжимания на брусьях, Подтягивания, Планка'
-    },
-    {
-      id: 3,
-      title: 'Кардио и пресс',
-      dateStr: '5 дней назад',
-      duration: '45 мин',
-      exercises: 'Беговая дорожка, Скручивания, Подъем ног на турнике, Берпи'
-    }
-  ]);
+  pastWorkouts = signal<PastWorkoutItem[]>([]);
 
   ngOnInit(): void {
     this.loadUserData();
+    this.loadRecentWorkouts();
   }
 
   private loadUserData(): void {
@@ -82,5 +64,39 @@ export class DashboardComponent implements OnInit {
         console.error('Ошибка при загрузке профиля пользователя:', err);
       }
     });
+  }
+
+  private loadRecentWorkouts(): void {
+    this.workoutService.getWorkouts(3).subscribe({
+      next: (response) => {
+        const mappedWorkouts: PastWorkoutItem[] = response.workouts.map((w: WorkoutDto) => {
+          const uniqueExercises = Array.from(
+            new Set(w.workoutSets.map((s) => s.exerciseName))
+          ).join(', ');
+
+          return {
+            id: w.id,
+            title: w.name || 'Тренировка без названия',
+            dateStr: this.formatDate(w.createdAt),
+            exercises: uniqueExercises || 'Упражнения не добавлены'
+          };
+        });
+
+        this.pastWorkouts.set(mappedWorkouts);
+      },
+      error: (err) => {
+        console.error('Ошибка при загрузке тренировок:', err);
+      }
+    });
+  }
+
+  private formatDate(dateIso: string): string {
+    const date = new Date(dateIso);
+    return new Intl.DateTimeFormat('ru-RU', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
   }
 }

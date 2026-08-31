@@ -7,6 +7,7 @@ import { DashboardComponent } from './features/dashboard/dashboard';
 import { ExerciseSearch } from './features/exercise-search/exercise-search';
 import { ExerciseDetail } from './features/exercise-detail/exercise-detail';
 import { ProfileSettings } from './features/profile-settings/profile-settings';
+import { CreateWorkout } from './features/create-workout/create-workout';
 
 export const routes: Routes = [
     {
@@ -42,6 +43,12 @@ export const routes: Routes = [
     {
         path: 'me',
         component: ProfileSettings,
+        canActivate: [authGuard]
+    },
+
+    {
+        path: 'workout/create',
+        component: CreateWorkout,
         canActivate: [authGuard]
     },
 
