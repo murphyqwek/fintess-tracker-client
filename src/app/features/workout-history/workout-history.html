@@ -1,0 +1,191 @@
+<div class="min-h-screen bg-[#F9F9FB] flex flex-col lg:flex-row text-gray-900 font-sans">
+
+  <aside class="hidden lg:flex flex-col w-80 xl:w-96 bg-white min-h-screen border-r border-gray-200 p-6 lg:p-8 shrink-0 gap-6">
+    
+    <div class="flex items-center gap-3.5">
+      <button 
+        (click)="goBack()" 
+        class="w-10 h-10 rounded-full bg-[#E8F2FE] text-sky-600 border border-sky-100 hover:bg-sky-100 flex items-center justify-center transition shrink-0 cursor-pointer"
+        aria-label="Назад"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+      <div>
+        <h1 class="text-xl font-bold tracking-tight text-gray-900">История тренировок</h1>
+        <p class="text-xs text-gray-500">Все ваши прошлые записи</p>
+      </div>
+    </div>
+
+    <hr class="border-gray-100" />
+
+    <div class="flex flex-col gap-3">
+      <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+        Искать начиная с даты
+      </label>
+      
+      <div class="relative">
+        <input 
+          type="datetime-local" 
+          [ngModel]="filterDate()" 
+          (ngModelChange)="onDateChange($event)"
+          class="w-full px-3.5 py-2.5 bg-[#F9F9FB] border border-gray-200 rounded-xl focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-100 outline-none text-xs font-semibold text-gray-700 transition"
+        />
+      </div>
+
+      @if (filterDate()) {
+        <button 
+          (click)="clearDateFilter()"
+          class="text-xs font-semibold text-sky-600 hover:text-sky-800 text-left flex items-center gap-1.5 transition cursor-pointer"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+          <span>Сбросить дату (показать свежие)</span>
+        </button>
+      }
+    </div>
+
+    <hr class="border-gray-100" />
+
+    <div class="mt-auto">
+      <a 
+        routerLink="/workout/create" 
+        class="w-full py-3.5 px-4 bg-sky-600 hover:bg-sky-700 text-white rounded-full text-xs font-bold shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        <span>Добавить тренировку</span>
+      </a>
+    </div>
+
+  </aside>
+
+  <main class="flex-1 p-4 sm:p-7 lg:p-10 flex flex-col gap-6 w-full max-w-6xl mx-auto lg:mx-0">
+    
+    <div class="flex flex-col gap-4 lg:hidden">
+      <div class="flex items-center gap-3">
+        <button 
+          (click)="goBack()" 
+          class="w-10 h-10 rounded-full bg-[#E8F2FE] text-sky-600 border border-sky-100 hover:bg-sky-100 flex items-center justify-center transition shrink-0 cursor-pointer"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </button>
+        <h1 class="text-xl font-bold tracking-tight">История тренировок</h1>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <input 
+          type="datetime-local" 
+          [ngModel]="filterDate()" 
+          (ngModelChange)="onDateChange($event)"
+          class="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 outline-none"
+        />
+        @if (filterDate()) {
+          <button 
+            (click)="clearDateFilter()" 
+            class="p-2 bg-gray-100 rounded-xl text-gray-500 hover:text-gray-800 text-xs font-semibold"
+          >
+            Сброс
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-900 text-xs font-medium">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    @if (isLoading()) {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        @for (_ of [1, 2, 3, 4, 5, 6]; track $index) {
+          <div class="bg-white rounded-2xl p-5 border border-gray-200 animate-pulse flex flex-col gap-3">
+            <div class="h-5 bg-gray-200 rounded w-2/3"></div>
+            <div class="h-3 bg-gray-100 rounded w-1/3"></div>
+            <div class="h-px bg-gray-100 my-1"></div>
+            <div class="h-3 bg-gray-100 rounded w-full"></div>
+            <div class="h-3 bg-gray-100 rounded w-4/5"></div>
+          </div>
+        }
+      </div>
+    } @else if (workouts().length > 0) {
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        @for (workout of workouts(); track workout.id) {
+          <a 
+            [routerLink]="['/workout', workout.id]"
+            class="bg-white rounded-2xl p-5 border border-gray-200 shadow-2xs flex flex-col justify-between hover:border-sky-300 hover:shadow-md transition duration-200 cursor-pointer group"
+          >
+            <div>
+              <div class="flex items-center justify-between gap-2">
+                <h3 class="font-bold text-base text-gray-900 group-hover:text-sky-600 transition truncate">
+                  {{ workout.name || 'Без названия' }}
+                </h3>
+                <svg class="w-4 h-4 text-gray-400 group-hover:text-sky-600 group-hover:translate-x-0.5 transition duration-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </div>
+
+              <p class="text-xs text-gray-500 mt-1">
+                {{ formatDate(workout.createdAt) }}
+              </p>
+              
+              <hr class="border-gray-100 my-3.5" />
+              
+              <p class="text-xs text-gray-600 leading-relaxed line-clamp-2">
+                {{ getUniqueExercises(workout) }}
+              </p>
+            </div>
+          </a>
+        }
+      </div>
+
+      @if (nextCursor()) {
+        <div class="flex justify-center mt-4">
+          <button 
+            (click)="loadMore()"
+            [disabled]="isLoadingMore()"
+            class="px-6 py-3 bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-800 rounded-full text-xs font-bold transition shadow-2xs flex items-center gap-2 cursor-pointer disabled:opacity-50"
+          >
+            @if (isLoadingMore()) {
+              <svg class="animate-spin h-4 w-4 text-sky-600" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Загрузка...</span>
+            } @else {
+              <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+              <span>Показать еще тренировки</span>
+            }
+          </button>
+        </div>
+      }
+
+    } @else {
+      <div class="bg-white rounded-2xl p-12 border border-gray-200 border-dashed text-center flex flex-col items-center justify-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center text-gray-400">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+          </svg>
+        </div>
+        <p class="text-sm font-semibold text-gray-700">Тренировок не найдено</p>
+        <p class="text-xs text-gray-400">
+          @if (filterDate()) {
+            Попробуйте выбрать другую дату или сбросить фильтр
+          } @else {
+            Вы пока не сохранили ни одной тренировки
+          }
+        </p>
+      </div>
+    }
+
+  </main>
+</div>

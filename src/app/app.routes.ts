@@ -9,6 +9,7 @@ import { ExerciseDetail } from './features/exercise-detail/exercise-detail';
 import { ProfileSettings } from './features/profile-settings/profile-settings';
 import { CreateWorkout } from './features/create-workout/create-workout';
 import { WorkoutDetail } from './features/workout-detail/workout-detail';
+import { WorkoutHistory } from './features/workout-history/workout-history';
 
 export const routes: Routes = [
     {
@@ -54,10 +55,18 @@ export const routes: Routes = [
     },
 
     {
+        path: 'workout/history',
+        component: WorkoutHistory,
+        canActivate: [authGuard]
+    },
+
+    {
         path: 'workout/:id',
         component: WorkoutDetail,
         canActivate: [authGuard]
     },
+
+
 
     {
         path: '**',
