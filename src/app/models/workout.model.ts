@@ -27,6 +27,22 @@ export interface CreateWorkoutSetDto {
 export interface CreateWorkoutRequest {
   name: string;
   description: string;
-  createAt: string; // ISO 8601
+  createAt: string;
   workoutSets: CreateWorkoutSetDto[];
+}
+
+export interface ResponseWorkoutSetDto {
+  exerciseId: number;
+  exerciseName: string;
+  repetitions: number;
+  weight: number;
+  order: number;
+}
+
+export interface ResponseWorkoutDto {
+  id: string;
+  name: string;
+  description: string;
+  date: string;
+  workoutSets: ResponseWorkoutSetDto[];
 }

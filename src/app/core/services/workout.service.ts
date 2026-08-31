@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { WorkoutListResponse, CreateWorkoutRequest } from '../../models/workout.model';
+import { WorkoutListResponse, CreateWorkoutRequest, ResponseWorkoutDto } from '../../models/workout.model';
 
 @Injectable({
   providedIn: 'root'
@@ -27,5 +27,9 @@ export class WorkoutService {
     });
 
     return this.http.post<number | string | { id: number | string }>(this.apiUrl, workout, { headers });
+  }
+
+  getWorkoutById(id: string): Observable<ResponseWorkoutDto> {
+    return this.http.get<ResponseWorkoutDto>(`${this.apiUrl}/${id}`);
   }
 }

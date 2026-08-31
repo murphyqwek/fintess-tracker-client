@@ -84,26 +84,37 @@
       </div>
 
       @if (pastWorkouts().length > 0) {
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          @for (workout of pastWorkouts(); track workout.id) {
-            <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-2xs flex flex-col justify-between hover:border-gray-300 transition">
-              <div>
-                <h3 class="font-bold text-base text-gray-900">{{ workout.title }}</h3>
-                <p class="text-xs text-gray-500 mt-1">
-                  {{ workout.dateStr }}
-                  @if (workout.duration) {
-                    <span> • {{ workout.duration }}</span>
-                  }
-                </p>
-                
-                <hr class="border-gray-100 my-3.5" />
-                
-                <p class="text-xs text-gray-600 leading-relaxed line-clamp-2">
-                  {{ workout.exercises }}
-                </p>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        @for (workout of pastWorkouts(); track workout.id) {
+          <a 
+            [routerLink]="['/workout', workout.id]"
+            class="bg-white rounded-2xl p-5 border border-gray-200 shadow-2xs flex flex-col justify-between hover:border-sky-300 hover:shadow-md transition duration-200 cursor-pointer group block"
+          >
+            <div>
+              <div class="flex items-center justify-between gap-2">
+                <h3 class="font-bold text-base text-gray-900 group-hover:text-sky-600 transition">
+                  {{ workout.title }}
+                </h3>
+                <svg class="w-4 h-4 text-gray-400 group-hover:text-sky-600 group-hover:translate-x-0.5 transition duration-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
               </div>
+
+              <p class="text-xs text-gray-500 mt-1">
+                {{ workout.dateStr }}
+                @if (workout.duration) {
+                  <span> • {{ workout.duration }}</span>
+                }
+              </p>
+              
+              <hr class="border-gray-100 my-3.5" />
+              
+              <p class="text-xs text-gray-600 leading-relaxed line-clamp-2">
+                {{ workout.exercises }}
+              </p>
             </div>
-          }
+          </a>
+        }
         </div>
 
         <div class="sm:hidden mt-2">

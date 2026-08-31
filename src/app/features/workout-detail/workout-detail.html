@@ -1,0 +1,359 @@
+<div class="min-h-screen bg-[#F9F9FB] flex flex-col lg:flex-row text-gray-900 font-sans relative">
+  <aside class="hidden lg:flex flex-col w-80 xl:w-96 bg-white lg:min-h-screen border-r border-gray-200 p-6 lg:p-8 shrink-0 gap-6">
+    
+    <div class="flex items-center gap-3.5">
+      <button 
+        (click)="goBack()" 
+        class="w-10 h-10 rounded-full bg-[#E8F2FE] text-sky-600 border border-sky-100 hover:bg-sky-100 flex items-center justify-center transition shrink-0 cursor-pointer"
+        aria-label="Назад"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+      <div class="min-w-0">
+        <h1 class="text-xl font-bold tracking-tight text-gray-900 truncate">Просмотр тренировки</h1>
+        <p class="text-xs text-gray-500">Режим просмотра и изменения</p>
+      </div>
+    </div>
+
+    <hr class="border-gray-100" />
+
+    <div class="flex flex-col gap-4">
+      <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Текущие показатели</span>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-[#E8F2FE] rounded-xl p-3 border border-sky-100 flex flex-col">
+          <span class="text-[11px] font-semibold text-gray-600">Упражнений</span>
+          <span class="text-xl font-extrabold text-gray-900 mt-0.5">{{ totalExercisesCount() }}</span>
+        </div>
+
+        <div class="bg-[#E8F2FE] rounded-xl p-3 border border-sky-100 flex flex-col">
+          <span class="text-[11px] font-semibold text-gray-600">Всего сетов</span>
+          <span class="text-xl font-extrabold text-gray-900 mt-0.5">{{ totalSetsCount() }}</span>
+        </div>
+      </div>
+
+      <div class="bg-gray-50 rounded-xl p-3.5 border border-gray-200 flex flex-col">
+        <span class="text-[11px] font-semibold text-gray-500">Общий тоннаж</span>
+        <div class="flex items-baseline gap-1 mt-0.5">
+          <span class="text-2xl font-extrabold text-gray-900 tracking-tight">{{ totalVolume() }}</span>
+          <span class="text-xs font-semibold text-gray-600">кг</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-3.5 bg-sky-50/70 rounded-xl border border-sky-100 flex items-start gap-2.5 text-xs text-sky-800">
+      <svg class="w-4 h-4 text-sky-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>Вы можете менять веса и упражнения прямо здесь. Сохранение изменений будет добавлено позже.</span>
+    </div>
+
+    <hr class="border-gray-100" />
+
+    <div class="mt-auto flex flex-col gap-3">
+      <button 
+        (click)="goBack()"
+        class="w-full py-3 px-5 bg-white border border-gray-300 rounded-full text-xs font-semibold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
+      >
+        Вернуться назад
+      </button>
+    </div>
+
+  </aside>
+
+  <main class="flex-1 p-4 sm:p-7 lg:p-10 flex flex-col gap-6 w-full max-w-4xl mx-auto lg:mx-0 pb-28 lg:pb-10">
+    
+    <div class="flex items-center justify-between lg:hidden">
+      <div class="flex items-center gap-3">
+        <button 
+          (click)="goBack()" 
+          class="w-10 h-10 rounded-full bg-[#E8F2FE] text-sky-600 border border-sky-100 hover:bg-sky-100 flex items-center justify-center transition shrink-0 cursor-pointer"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </button>
+        <h1 class="text-xl font-bold tracking-tight truncate">Просмотр тренировки</h1>
+      </div>
+    </div>
+
+    @if (isLoading()) {
+      <div class="p-12 flex flex-col items-center justify-center gap-3 bg-white rounded-2xl border border-gray-200">
+        <svg class="animate-spin h-8 w-8 text-sky-600" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span class="text-sm font-medium text-gray-500">Загрузка тренировки...</span>
+      </div>
+    }
+
+    @if (loadError()) {
+      <div class="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-900 flex items-start gap-3.5">
+        <div class="w-6 h-6 rounded-full bg-red-200 text-red-800 flex items-center justify-center shrink-0 mt-0.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+        </div>
+        <div class="flex-1 text-sm">
+          <p class="font-bold">Ошибка загрузки</p>
+          <p class="mt-0.5 text-xs opacity-90 leading-relaxed">{{ loadError() }}</p>
+        </div>
+      </div>
+    }
+
+    @if (!isLoading() && !loadError()) {
+      <section class="bg-white p-5 sm:p-7 rounded-2xl border border-gray-200 shadow-2xs flex flex-col gap-4">
+        <h2 class="text-base sm:text-lg font-bold text-gray-900 tracking-tight">
+          1. Основная информация
+        </h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5 sm:col-span-1">
+            <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+              Название тренировки
+            </label>
+            <input 
+              type="text" 
+              [ngModel]="workoutName()" 
+              (ngModelChange)="workoutName.set($event)"
+              placeholder="Название тренировки"
+              class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-100 outline-none text-sm transition font-medium"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1.5 sm:col-span-1">
+            <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+              Дата и время
+            </label>
+            <input 
+              type="datetime-local" 
+              [ngModel]="workoutDate()" 
+              (ngModelChange)="workoutDate.set($event)"
+              class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-100 outline-none text-sm transition font-medium text-gray-700"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1.5 sm:col-span-2">
+            <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+              Описание / Заметки
+            </label>
+            <textarea 
+              rows="2"
+              [ngModel]="workoutDescription()" 
+              (ngModelChange)="workoutDescription.set($event)"
+              placeholder="Заметки к тренировке..."
+              class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-100 outline-none text-sm transition resize-none font-medium"
+            ></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="bg-white p-5 sm:p-7 rounded-2xl border border-gray-200 shadow-2xs flex flex-col gap-4">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <h2 class="text-base sm:text-lg font-bold text-gray-900 tracking-tight">
+            2. Упражнения и подходы
+          </h2>
+          <span class="text-xs text-gray-400 font-medium">Упражнений: {{ exerciseGroups().length }}</span>
+        </div>
+
+        <div class="relative">
+          <div class="relative flex items-center">
+            <svg class="w-5 h-5 text-gray-400 absolute left-3.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            
+            <input 
+              type="text" 
+              [ngModel]="searchQuery()" 
+              (ngModelChange)="onSearchInput($event)"
+              (focus)="isSearchDropdownOpen.set(true)"
+              placeholder="Добавить еще упражнение (поиск по названию)..."
+              class="w-full pl-11 pr-10 py-3 bg-[#F9F9FB] border border-gray-200 rounded-2xl focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-100 outline-none text-sm transition font-medium"
+            />
+
+            @if (isSearching()) {
+              <svg class="animate-spin h-5 w-5 text-sky-600 absolute right-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            }
+          </div>
+
+          @if (isSearchDropdownOpen() && searchQuery().trim().length > 0) {
+            <div class="absolute z-20 top-full left-0 right-0 mt-2 bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden divide-y divide-gray-100">
+              @if (searchResults().length > 0) {
+                @for (res of searchResults(); track res.id) {
+                  <button 
+                    (click)="selectExercise(res)"
+                    class="w-full text-left p-3.5 hover:bg-[#E8F2FE]/50 transition flex items-center justify-between gap-3 group cursor-pointer"
+                  >
+                    <div class="flex flex-col min-w-0">
+                      <span class="font-bold text-sm text-gray-900 group-hover:text-sky-700 truncate">
+                        {{ res.name }}
+                      </span>
+                      <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                        @for (m of res.muscles; track m.id) {
+                          <span class="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md font-semibold">
+                            {{ m.name }}
+                          </span>
+                        }
+                      </div>
+                    </div>
+
+                    <span class="w-8 h-8 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center shrink-0 group-hover:bg-sky-600 group-hover:text-white transition">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                      </svg>
+                    </span>
+                  </button>
+                }
+              } @else if (!isSearching()) {
+                <div class="p-4 text-center text-xs text-gray-500">
+                  По запросу «{{ searchQuery() }}» ничего не найдено
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <hr class="border-gray-100 my-1" />
+
+        @if (exerciseGroups().length > 0) {
+          <div class="flex flex-col gap-5">
+            @for (group of exerciseGroups(); track $index; let exIdx = $index) {
+              
+              <div class="bg-[#F9F9FB] rounded-2xl border border-gray-200 p-4 sm:p-5 flex flex-col gap-3.5 transition">
+                
+                <!-- Шапка упражнения -->
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <span class="w-7 h-7 rounded-lg bg-[#E8F2FE] text-sky-700 text-xs font-bold flex items-center justify-center shrink-0 border border-sky-200">
+                      {{ exIdx + 1 }}
+                    </span>
+                    <div class="min-w-0">
+                      <h3 class="text-base font-bold text-gray-900 truncate">
+                        {{ group.exerciseName }}
+                      </h3>
+                      @if (group.muscles && group.muscles.length > 0) {
+                        <div class="flex flex-wrap gap-1 mt-1">
+                          @for (m of group.muscles; track m.id) {
+                            <span class="text-[10px] text-sky-700 font-semibold bg-white border border-sky-100 px-2 py-0.5 rounded-md">
+                              {{ m.name }}
+                            </span>
+                          }
+                        </div>
+                      }
+                    </div>
+                  </div>
+
+                  <button 
+                    (click)="removeExercise(exIdx)"
+                    class="text-gray-400 hover:text-red-500 transition p-1.5 rounded-lg hover:bg-red-50 shrink-0 cursor-pointer"
+                    title="Удалить упражнение"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <div class="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 flex flex-col gap-2.5">
+                  <div class="grid grid-cols-12 gap-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider px-1">
+                    <div class="col-span-2 sm:col-span-1 text-center">Сет</div>
+                    <div class="col-span-5 sm:col-span-5 text-center">Вес (кг)</div>
+                    <div class="col-span-4 sm:col-span-5 text-center">Повторения</div>
+                    <div class="col-span-1 text-center"></div>
+                  </div>
+
+                  @for (set of group.sets; track $index; let setIdx = $index) {
+                    <div class="grid grid-cols-12 gap-2 items-center">
+                      
+                      <div class="col-span-2 sm:col-span-1 text-center font-bold text-xs text-gray-500 bg-gray-50 py-2 rounded-lg border border-gray-100">
+                        {{ setIdx + 1 }}
+                      </div>
+
+                      <div class="col-span-5 sm:col-span-5">
+                        <input 
+                          type="number" 
+                          min="0" 
+                          step="0.5"
+                          [(ngModel)]="set.weight"
+                          placeholder="0"
+                          class="w-full text-center py-2 px-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-100 outline-none text-sm font-bold text-gray-900 transition"
+                        />
+                      </div>
+
+                      <div class="col-span-4 sm:col-span-5">
+                        <input 
+                          type="number" 
+                          min="1" 
+                          step="1"
+                          [(ngModel)]="set.repetitions"
+                          placeholder="0"
+                          class="w-full text-center py-2 px-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-100 outline-none text-sm font-bold text-gray-900 transition"
+                        />
+                      </div>
+
+                      <div class="col-span-1 flex justify-center">
+                        @if (group.sets.length > 1) {
+                          <button 
+                            (click)="removeSet(exIdx, setIdx)" 
+                            class="text-gray-300 hover:text-red-500 transition p-1 cursor-pointer"
+                            title="Удалить подход"
+                          >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                          </button>
+                        }
+                      </div>
+
+                    </div>
+                  }
+
+                  <button 
+                    (click)="addSet(exIdx)"
+                    class="mt-2 w-full py-2 bg-[#E8F2FE]/70 hover:bg-[#E8F2FE] text-sky-700 rounded-xl text-xs font-bold border border-sky-100 transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span>Добавить подход</span>
+                  </button>
+
+                </div>
+
+              </div>
+
+            }
+          </div>
+        } @else {
+          <div class="bg-gray-50/70 rounded-2xl p-8 border border-gray-200 border-dashed text-center flex flex-col items-center justify-center gap-2.5">
+            <p class="text-sm font-semibold text-gray-700">В тренировке нет упражнений</p>
+            <p class="text-xs text-gray-400 max-w-sm">Используйте поиск выше, чтобы добавить упражнения.</p>
+          </div>
+        }
+
+      </section>
+    }
+
+  </main>
+
+  <div class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 p-4 flex items-center justify-between gap-3 z-30 shadow-lg">
+    <div class="flex flex-col">
+      <span class="text-[10px] uppercase font-bold text-gray-400">Объем</span>
+      <span class="text-sm font-extrabold text-gray-900">{{ totalVolume() }} кг</span>
+    </div>
+    
+    <button 
+      (click)="goBack()"
+      class="py-2.5 px-5 bg-sky-600 text-white rounded-full text-xs font-bold shadow-sm transition"
+    >
+      Назад
+    </button>
+  </div>
+
+</div>
