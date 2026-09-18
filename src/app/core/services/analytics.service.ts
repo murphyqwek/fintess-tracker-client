@@ -8,7 +8,7 @@ import { MonthlyVolumeResponse, WeeklyRecordResponse } from '../../models/analyt
 })
 export class AnalyticsService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = '/api/analytics';
+  private readonly baseUrl = '/api/v1/analytics';
 
   getMonthlyVolume(): Observable<MonthlyVolumeResponse> {
     return this.http.get<MonthlyVolumeResponse>(
