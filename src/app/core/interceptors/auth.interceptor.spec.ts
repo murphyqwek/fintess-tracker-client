@@ -13,6 +13,7 @@ describe('authInterceptor refresh flow', () => {
 
   beforeEach(() => {
     router = jasmine.createSpyObj<Router>('Router', ['navigate']);
+    router.navigate.and.returnValue(Promise.resolve(true));
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([authInterceptor])),

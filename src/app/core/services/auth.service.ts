@@ -1,4 +1,4 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpErrorResponse } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs/internal/Observable';
@@ -6,6 +6,7 @@ import { User } from '../../models/user.model';
 import { catchError, finalize, map, of, shareReplay, tap } from 'rxjs';
 import { UserAuthModel } from '../../models/user.auth.model';
 import { UserRegModel } from '../../models/user.reg.model';
+import { SKIP_AUTH_REDIRECT } from '../interceptors/auth.context';
 
 @Injectable({
   providedIn: 'root',
@@ -14,6 +15,7 @@ export class AuthService {
   readonly http = inject(HttpClient);
   private router = inject(Router);
   private refreshRequest$: Observable<void> | null = null;
+  private redirectingToLogin = false;
 
   currentUser = signal<User | null>(null);
   
@@ -41,7 +43,10 @@ export class AuthService {
   }
 
   checkAuth(): Observable<boolean> {
-    return this.http.get<User>(`api/v1/test-auth`, { withCredentials: true }).pipe(
+    return this.http.get<User>(`api/v1/test-auth`, {
+      withCredentials: true,
+      context: new HttpContext().set(SKIP_AUTH_REDIRECT, true),
+    }).pipe(
       tap(user => this.currentUser.set(user)),
       map(() => true),
       catchError(() => {
@@ -59,7 +64,6 @@ export class AuthService {
           error: (error: HttpErrorResponse) => {
             if (error.status === 401) {
               this.currentUser.set(null);
-              this.router.navigate(['/login']);
             }
           },
         }),
@@ -69,5 +73,16 @@ export class AuthService {
     }
 
     return this.refreshRequest$;
+  }
+
+  redirectToLogin(): void {
+    if (this.redirectingToLogin || this.router.url === '/login') {
+      return;
+    }
+
+    this.redirectingToLogin = true;
+    void this.router.navigate(['/login']).finally(() => {
+      this.redirectingToLogin = false;
+    });
   }
 }
