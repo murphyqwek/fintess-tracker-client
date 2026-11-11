@@ -1,9 +1,9 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs/internal/Observable';
 import { User } from '../../models/user.model';
-import { catchError, map, of, tap } from 'rxjs';
+import { catchError, finalize, map, of, shareReplay, tap } from 'rxjs';
 import { UserAuthModel } from '../../models/user.auth.model';
 import { UserRegModel } from '../../models/user.reg.model';
 
@@ -13,6 +13,7 @@ import { UserRegModel } from '../../models/user.reg.model';
 export class AuthService {
   readonly http = inject(HttpClient);
   private router = inject(Router);
+  private refreshRequest$: Observable<void> | null = null;
 
   currentUser = signal<User | null>(null);
   
@@ -50,7 +51,23 @@ export class AuthService {
     );
   }
 
-  refreshToken(): Observable<any> {
-    return this.http.post(`api/v1/auth/refresh`, {}, { withCredentials: true });
+  refreshToken(): Observable<void> {
+    if (!this.refreshRequest$) {
+      this.refreshRequest$ = this.http.post<void>(`api/v1/auth/refresh`, {}, { withCredentials: true }).pipe(
+        map(() => undefined),
+        tap({
+          error: (error: HttpErrorResponse) => {
+            if (error.status === 401) {
+              this.currentUser.set(null);
+              this.router.navigate(['/login']);
+            }
+          },
+        }),
+        finalize(() => this.refreshRequest$ = null),
+        shareReplay({ bufferSize: 1, refCount: false }),
+      );
+    }
+
+    return this.refreshRequest$;
   }
 }
